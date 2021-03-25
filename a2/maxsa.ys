@@ -1,0 +1,156 @@
+.pos 0x100
+main:
+    irmovq $stackEnd, %rsp      # initialize stack pointer to stackend
+    irmovq $array, %rdi         # rdi = array = base
+    irmovq $arraySize, %rsi     # rsi = &size
+    mrmovq (%rsi), %rsi         # rsi = size
+    irmovq $resultStart, %rdx   # rdx = &sa_start
+    irmovq $resultEnd, %rcx     # rcx = &sa_end
+    call   maxSubArray          # maxSubArray(array, size,&sa_start,&sa_end)
+    irmovq $resultSum, %r8      # rcx = &bestsum
+    rmmovq %rax, (%r8)          # rax = bestsum
+    halt
+
+.pos 0x1000
+maxSubArray:
+    pushq  %rbx             # allocate space for rbx
+    pushq  %rbp             # allocate space for rbp
+    pushq  %r12             # allocate space for r12
+    pushq  %r13             # allocate space for r13
+    pushq  %r14             # allocate space for r14
+    irmovq $1, %r9          # r9 = 1
+    subq   %rsi, %r9        # r9 = 1-size 
+    jne    L1               # if (size != 1), go to L1
+    rmmovq %rdi, (%rcx)     # memory write from rdi, rcx = array
+    rmmovq %rdi, (%rdx)     # memory write from rdi, rdx = array
+    mrmovq (%rdi), %r13     # memory read at rdi, r13 = array
+    jmp    L9               # go to L9
+L1:
+    irmovq $2, %r10     # r10 = 2                      
+    rrmovq %rsi, %rbx   # rbx = rsi = size
+    divq   %r10, %rbx   # rbx = size / 2 = half
+    irmovq $8, %rbp     # rbp = 8 (size of elements) 
+    mulq   %rbx, %rbp   # rbp = 8 * (size / 2) 
+    addq   %rdi, %rbp   # rbp = 8 * (size / 2) + array = mid, (size / 2) position of the array
+    irmovq $8, %r8      # r8 = 8 
+    rrmovq %rsi, %r9    # r9 = rsi = size
+    mulq   %r8, %r9     # r9 = size * 8 
+    addq   %rdi, %r9    # r9 = size * 8 + array
+    subq   %r8, %r9     # r9 = size * 8 + array - 8 = end, adress of last position of the array
+    xorq   %rax, %rax   # set sum to zero
+    irmovq $0x8000000000000000, %r10    # r10 = 0x8000000000000000 = LONG_MIN = leftsum 
+    rrmovq %rbp, %r11   # r11 = rbp = mid
+    subq   %r8, %r11    # r11 = mid -1 
+L2:
+    rrmovq %r11, %r12   # r12 = r11 = mid -1 = ptr
+    subq   %rdi, %r12   # r12 = ptr - array
+    jl     L4           # if (ptr < array), go to L4(in range?)
+    mrmovq (%r11), %r12 # r12 = memory in ptr
+    addq   %r12, %rax   # rax = sum = sum + memory in ptr
+    rrmovq %rax, %r12   # r12 = rax = sum
+    subq   %r10, %r12   # r12 = sum - leftsum
+    jle    L3           # if (leftsum >= sum), go to L3(highest?)
+    rrmovq %rax, %r10   # r10 = leftsum = sum
+    rmmovq %r11, (%rdx) # memory write from r11, rdx = ptr (*sa_start = ptr)
+L3:
+    subq   %r8, %r11    # r11 = mid -8, (mid-1)-- 
+    jmp    L2           # go to L2
+L4:
+    irmovq $0x8000000000000000, %r13    # r13 = 0x8000000000000000 = LONG_MIN = rightsum 
+    rrmovq %rbp, %r11   # r11 = rbp = mid
+    xorq   %rax, %rax   # set sum to zero
+L5:
+    rrmovq %r11, %r12   # r12 = r11 = mid = ptr
+    subq   %r9, %r12    # r12 = ptr - end
+    jg     L7           # if (ptr > end), go to L7 (in range?)
+    mrmovq (%r11), %r12 # r12 = memory in ptr
+    addq   %r12, %rax   # rax = sum = sum + memory in ptr
+    rrmovq %rax, %r12   # r12 = rax = sum
+    subq   %r13, %r12   # r12 = sum - rightsum
+    jle    L6           # if (rightsum >= sum), go to L6(highest?)
+    rrmovq %rax, %r13   # r13 = rightsum = sum
+    rmmovq %r11, (%rcx) # memory write from r11, rcx = ptr (*sa_end = ptr;)
+L6:
+    addq   %r8, %r11    # r11 = mid+8, mid++
+    jmp    L5           # go to L5
+L7:
+    addq   %r10, %r13   # r13 = rightsum + leftsum
+    rrmovq %rcx, %r14   # r14 = rcx = ptr(end)
+    rrmovq %rsi, %r9    # r9 = rsi = size
+    subq   %rbx, %r9    # r9 = size - half
+    rrmovq %rdx, %r12   # r12 = rdx = ptr(array)
+    rrmovq %rbx, %rsi   # rsi = rbx = half
+    rrmovq %r9, %rbx    # rbx = r9 = size - half
+    pushq  %rdx         # allocate space for rdx
+    rrmovq %rsp, %rdx   # rdx = rsp = stack pointer to stackend
+    pushq  %rcx         # allocate space for rcx
+    rrmovq %rsp, %rcx   # rcx = rsp = stack pointer to stackend
+    call   maxSubArray  # maxSubArray(rdi,rsi,rdx,rcx) ,maxsa(array, half, &sub_start, &sub_end);
+    popq   %rcx         # deallocate space for rcx
+    popq   %rdx         # deallocate space for rdx
+    rrmovq %rax, %r9    # r9 = rax = sum
+    subq   %r13, %r9    # r9 = sum - (rightsum + leftsum)
+    jle    L8           # if((rightsum + leftsum)>= sum), jump to L8
+    rrmovq %rax, %r13   # r13 = rax = sum
+    rmmovq %rdx, (%r12) # memory write from rdx, r12 = (%rdx) (stored in line 54) 
+    rmmovq %rcx, (%r14) # memory write from rcx, r14 = (%rcx) (stored in line 72)
+L8:
+    rrmovq %rbp, %rdi   # rdi = rbp = mid
+    rrmovq %rbx, %rsi   # rsi = rbx = size - half
+    pushq  %rdx         # allocate space for rdx
+    rrmovq %rsp, %rdx   # rdx = rsp = stack pointer to stackend
+    pushq  %rcx         # allocate space for rcx
+    rrmovq %rsp, %rcx   # rcx = rsp = stack pointer to stackend
+    call   maxSubArray  # maxSubArray(rdi,rsi,rdx,rcx) ,maxsa(mid, size - half, &sub_start, &sub_end);
+    popq   %rcx         # deallocate space for rcx
+    popq   %rdx         # deallocate space for rdx
+    rrmovq %rax, %r9    # r9 = rax = sum
+    subq   %r13, %r9    # r9 = sum - (rightsum + leftsum)
+    jle    L9           # if((rightsum + leftsum)>= sum), jump to L9
+    rrmovq %rax, %r13   # r13 = rax = sum
+    rmmovq %rdx, (%r12) # memory write from rdx, r12 = (%rdx) (stored in line 54) 
+    rmmovq %rcx, (%r14) # memory write from rcx, r14 = (%rcx) (stored in line 72)
+L9:
+    rrmovq %r13, %rax   # rax = r13 = size
+    popq   %r14         # deallocate space for r14
+    popq   %r13         # deallocate space for r13
+    popq   %r12         # deallocate space for r12
+    popq   %rbp         # deallocate space for rbp
+    popq   %rbx         # deallocate space for rbx
+    ret                 # return
+    
+    
+.pos 0x2000
+array:
+    .quad 13
+    .quad -3
+    .quad -25
+    .quad -20
+    .quad -3
+    .quad -16
+    .quad -23
+    .quad 18
+    .quad 20
+    .quad -7
+    .quad 12
+    .quad -5
+    .quad -22
+    .quad 15
+    .quad -4
+    .quad 7
+arraySize:
+    .quad 16
+
+.pos 0x2500
+resultStart:
+    .quad 0
+resultEnd:
+    .quad 0
+resultSum:
+    .quad 0
+
+.pos 0x4000
+stack:
+    .quad 0, 1000
+stackEnd:
+    .quad 0

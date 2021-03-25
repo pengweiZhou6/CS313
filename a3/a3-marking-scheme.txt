@@ -1,0 +1,42 @@
+Total before late penalty: [19/19]
+    ***Total after 0.13% late penalty is 18.97
+
+[17/17] Part 2 Completion of Cache simulator
+----------------
+
+    [1/1] Function cache_line_check_validity_and_tag
+        0.5 mark for checking the valid bit
+        0.5 mark for checking the tag
+
+    [1/1] Function cache_line_retrieve_data
+        0.5 mark for using the offset correctly
+        0.5 mark for retrieving an 8 byte integer (not only a single byte)
+
+
+    [4/4] Function cache_set_find_matching_line
+        1 mark for looping through the cache lines in the set
+        1 mark for checking tags and validity of each
+        1 mark for calling cache_line_make_mru as appropriate
+        1 mark for the correct return values
+
+    [3/3] Function find_available_cache_line
+        1 mark for returning an invalid (empty) cache line if one exists
+        1 mark for returning the least recently used line if all are valid
+        1 mark for calling cache_line_make_mru as appropriate
+
+    [7/7] Function cache_read
+        1 mark for extracting the tag, set index and cache block offsets
+        2 marks for handling the case where the data is in the cache
+        3 marks for the case where the data is not already in the cache
+        1 mark for updating access_count and miss_count
+
+    [1/1] Comments and style
+
+
+[2/2] Part 4 - Game of Life simulation
+  [2/2] Program compiles and runs - Running means the running of
+       the changed code, not the original.
+
+
+
+

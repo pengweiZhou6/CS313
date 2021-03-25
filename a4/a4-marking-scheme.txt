@@ -1,0 +1,18 @@
+Total before late penalty: [88/100]
+GRADE PART 1:  18 / 20
+	Correct : ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+	Incorrect : ['10']
+GRADE:  PART 2: lbn_to_daddr :  22 / 30
+	deductions:
+	Failure mapping file with only triple indirect blocks TIndirectOnly -4
+	Segfaulted ['A9'] -4
+GRADE:  PART 3: find_file_from_path :  20 / 20
+GRADE:  PART 2: read_file_block :  5 / 5
+GRADE:  Smoketest: run with 2KB blocks :  3 / 5
+	deductions:
+	PART 2: lbn_to_daddr
+	PART 2: read_file_block
+GRADE:  PART 3: follow_directory_entries :  20 / 20
+
+
+
